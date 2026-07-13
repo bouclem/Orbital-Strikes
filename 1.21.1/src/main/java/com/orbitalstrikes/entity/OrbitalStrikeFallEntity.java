@@ -17,6 +17,11 @@ public class OrbitalStrikeFallEntity extends ThrowableProjectile {
     private static final double CYLINDER_RADIUS = 8.0;
 
     private boolean detonated = false;
+    private boolean carving = false;
+    private int carveY = Integer.MIN_VALUE;
+    private int carveCX = 0;
+    private int carveCZ = 0;
+    private static final int CARVE_LAYERS_PER_TICK = 5;
 
     public OrbitalStrikeFallEntity(EntityType<? extends ThrowableProjectile> type, Level level) {
         super(type, level);
@@ -44,24 +49,35 @@ public class OrbitalStrikeFallEntity extends ThrowableProjectile {
             this.level().explode(null, pos.x, pos.y, pos.z,
                     FINAL_EXPLOSION_RADIUS, true, Level.ExplosionInteraction.TNT);
 
-            int cx = (int) pos.x;
-            int cz = (int) pos.z;
-            int topY = (int) pos.y;
-            for (int y = topY; y >= BEDROCK_Y; y--) {
-                for (int x = (int) -CYLINDER_RADIUS; x <= CYLINDER_RADIUS; x++) {
-                    for (int z = (int) -CYLINDER_RADIUS; z <= CYLINDER_RADIUS; z++) {
-                        if (x * x + z * z <= CYLINDER_RADIUS * CYLINDER_RADIUS) {
-                            BlockPos blockPos = new BlockPos(cx + x, y, cz + z);
-                            BlockState state = this.level().getBlockState(blockPos);
-                            if (!state.isAir() && state.getBlock().defaultDestroyTime() >= 0) {
-                                this.level().removeBlock(blockPos, false);
-                            }
+            carving = true;
+            carveY = (int) pos.y;
+            carveCX = (int) pos.x;
+            carveCZ = (int) pos.z;
+        }
+    }
+
+    private void carveTick() {
+        if (!carving) return;
+        int layersDone = 0;
+        while (layersDone < CARVE_LAYERS_PER_TICK && carveY >= BEDROCK_Y) {
+            for (int x = (int) -CYLINDER_RADIUS; x <= CYLINDER_RADIUS; x++) {
+                for (int z = (int) -CYLINDER_RADIUS; z <= CYLINDER_RADIUS; z++) {
+                    if (x * x + z * z <= CYLINDER_RADIUS * CYLINDER_RADIUS) {
+                        BlockPos blockPos = new BlockPos(carveCX + x, carveY, carveCZ + z);
+                        BlockState state = this.level().getBlockState(blockPos);
+                        if (!state.isAir() && state.getBlock().defaultDestroyTime() >= 0) {
+                            this.level().removeBlock(blockPos, false);
                         }
                     }
                 }
             }
+            carveY--;
+            layersDone++;
         }
-        this.discard();
+        if (carveY < BEDROCK_Y) {
+            carving = false;
+            this.discard();
+        }
     }
 
     @Override
@@ -85,9 +101,13 @@ public class OrbitalStrikeFallEntity extends ThrowableProjectile {
         }
 
         if (!this.level().isClientSide()) {
-            BlockState stateBelow = this.level().getBlockState(this.blockPosition().below());
-            if (!stateBelow.isAir() || this.onGround()) {
-                detonate();
+            if (carving) {
+                carveTick();
+            } else if (!detonated) {
+                BlockState stateBelow = this.level().getBlockState(this.blockPosition().below());
+                if (!stateBelow.isAir() || this.onGround()) {
+                    detonate();
+                }
             }
         }
     }
