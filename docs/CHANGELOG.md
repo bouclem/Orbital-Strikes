@@ -5,6 +5,9 @@
 ### Added
 - After the cluster explosions, a massive object descends from the sky and creates a giant explosion that carves all the way down to bedrock
 
+### Changed
+- No cooldown in creative mode
+
 ## [0.1.1] - 2026-07-14
 
 ### Changed

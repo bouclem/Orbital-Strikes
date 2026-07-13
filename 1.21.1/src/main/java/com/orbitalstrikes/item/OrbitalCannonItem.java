@@ -25,7 +25,7 @@ public class OrbitalCannonItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (player.getCooldowns().isOnCooldown(this)) {
+        if (!player.isCreative() && player.getCooldowns().isOnCooldown(this)) {
             return InteractionResultHolder.fail(itemStack);
         }
 
@@ -54,7 +54,9 @@ public class OrbitalCannonItem extends Item {
             projectile.shootToward(targetPosition);
             level.addFreshEntity(projectile);
 
-            player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
+            if (!player.isCreative()) {
+                player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
+            }
         }
 
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
