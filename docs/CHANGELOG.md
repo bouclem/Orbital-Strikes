@@ -10,4 +10,4 @@
 - Item added to the Combat creative tab
 - English localization
 - NeoForge 1.21.1 project setup (ModDevGradle, Java 21)
-- Forge 1.20.1 project setup (ForgeGradle 6, Java 21)
+- Forge 1.20.1 project setup (ForgeGradle 6, Java 17)

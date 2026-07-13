@@ -29,7 +29,7 @@ assets/orbitalstrikes/
 
 | Aspect              | 1.21.1 (NeoForge)              | 1.20.1 (Forge)                   |
 |---------------------|--------------------------------|----------------------------------|
-| Java                | 21                             | 21                               |
+| Java                | 21                             | 17                               |
 | Build Tool          | ModDevGradle 0.1.110           | ForgeGradle 6.x                  |
 | Registration        | `DeferredRegister.Items`       | `DeferredRegister` + `ForgeRegistries.ITEMS` |
 | Item Holder         | `DeferredItem<Item>`           | `RegistryObject<Item>`           |
