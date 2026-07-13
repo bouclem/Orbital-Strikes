@@ -19,6 +19,13 @@ public class ModEntities {
                     .clientTrackingRange(4)
                     .build("orbital_strike"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<OrbitalStrikeFallEntity>> ORBITAL_STRIKE_FALL =
+            ENTITIES.register("orbital_strike_fall", () -> EntityType.Builder
+                    .<OrbitalStrikeFallEntity>of(OrbitalStrikeFallEntity::new, MobCategory.MISC)
+                    .sized(2.0f, 2.0f)
+                    .clientTrackingRange(6)
+                    .build("orbital_strike_fall"));
+
     public static void register(IEventBus eventBus) {
         ENTITIES.register(eventBus);
     }

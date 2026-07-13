@@ -1,0 +1,98 @@
+package com.orbitalstrikes.entity;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.ThrowableProjectile;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+
+public class OrbitalStrikeFallEntity extends ThrowableProjectile {
+    private static final float FINAL_EXPLOSION_RADIUS = 20.0f;
+    private static final double DESCENT_SPEED = 0.8;
+    private static final int BEDROCK_Y = -64;
+    private static final double CYLINDER_RADIUS = 8.0;
+
+    private boolean detonated = false;
+
+    public OrbitalStrikeFallEntity(EntityType<? extends ThrowableProjectile> type, Level level) {
+        super(type, level);
+        this.setNoGravity(true);
+    }
+
+    public OrbitalStrikeFallEntity(EntityType<? extends ThrowableProjectile> type, Level level, Vec3 position) {
+        super(type, level);
+        this.setPos(position.x, position.y, position.z);
+        this.setNoGravity(true);
+        this.setDeltaMovement(0, -DESCENT_SPEED, 0);
+    }
+
+    @Override
+    protected void onHitBlock(BlockHitResult result) {
+        detonate();
+    }
+
+    private void detonate() {
+        if (detonated) return;
+        detonated = true;
+
+        if (!this.level().isClientSide()) {
+            Vec3 pos = this.position();
+            this.level().explode(null, pos.x, pos.y, pos.z,
+                    FINAL_EXPLOSION_RADIUS, true, Level.ExplosionInteraction.TNT);
+
+            int cx = (int) pos.x;
+            int cz = (int) pos.z;
+            int topY = (int) pos.y;
+            for (int y = topY; y >= BEDROCK_Y; y--) {
+                for (int x = (int) -CYLINDER_RADIUS; x <= CYLINDER_RADIUS; x++) {
+                    for (int z = (int) -CYLINDER_RADIUS; z <= CYLINDER_RADIUS; z++) {
+                        if (x * x + z * z <= CYLINDER_RADIUS * CYLINDER_RADIUS) {
+                            BlockPos blockPos = new BlockPos(cx + x, y, cz + z);
+                            BlockState state = this.level().getBlockState(blockPos);
+                            if (!state.isAir() && state.getBlock().defaultDestroyTime() >= 0) {
+                                this.level().removeBlock(blockPos, false);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        this.discard();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.level().isClientSide()) {
+            for (int i = 0; i < 8; i++) {
+                this.level().addParticle(ParticleTypes.FLAME,
+                        this.getX() + (this.random.nextDouble() - 0.5) * 2.0,
+                        this.getY() + (this.random.nextDouble() - 0.5) * 2.0,
+                        this.getZ() + (this.random.nextDouble() - 0.5) * 2.0,
+                        0.0, 0.0, 0.0);
+            }
+            for (int i = 0; i < 4; i++) {
+                this.level().addParticle(ParticleTypes.LARGE_SMOKE,
+                        this.getX() + (this.random.nextDouble() - 0.5) * 3.0,
+                        this.getY() + (this.random.nextDouble() - 0.5) * 3.0,
+                        this.getZ() + (this.random.nextDouble() - 0.5) * 3.0,
+                        0.0, 0.1, 0.0);
+            }
+        }
+
+        if (!this.level().isClientSide()) {
+            BlockState stateBelow = this.level().getBlockState(this.blockPosition().below());
+            if (!stateBelow.isAir() || this.onGround()) {
+                detonate();
+            }
+        }
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    }
+}

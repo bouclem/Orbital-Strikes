@@ -58,6 +58,17 @@ public class OrbitalStrikeEntity extends ThrowableProjectile {
                 this.level().explode(null, pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
                         SMALL_EXPLOSION_RADIUS, false, Level.ExplosionInteraction.TNT);
             }
+
+            final Level level = this.level();
+            final Vec3 impactPos = new Vec3(pos.x, pos.y, pos.z);
+            level.getServer().tell(new net.minecraft.server.TickTask(
+                    level.getServer().getTickCount() + 24,
+                    () -> {
+                        Vec3 skyPos = new Vec3(impactPos.x, impactPos.y + 50, impactPos.z);
+                        OrbitalStrikeFallEntity fallEntity = new OrbitalStrikeFallEntity(
+                                ModEntities.ORBITAL_STRIKE_FALL.get(), level, skyPos);
+                        level.addFreshEntity(fallEntity);
+                    }));
         }
         this.discard();
     }
