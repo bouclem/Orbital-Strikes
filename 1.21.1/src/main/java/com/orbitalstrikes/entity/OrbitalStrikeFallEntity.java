@@ -2,42 +2,73 @@ package com.orbitalstrikes.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-public class OrbitalStrikeFallEntity extends ThrowableProjectile {
+public class OrbitalStrikeFallEntity extends Entity {
     private static final float FINAL_EXPLOSION_RADIUS = 20.0f;
     private static final double DESCENT_SPEED = 0.8;
     private static final int BEDROCK_Y = -64;
     private static final double CYLINDER_RADIUS = 8.0;
+    private static final int CARVE_LAYERS_PER_TICK = 5;
 
     private boolean detonated = false;
     private boolean carving = false;
     private int carveY = Integer.MIN_VALUE;
     private int carveCX = 0;
     private int carveCZ = 0;
-    private static final int CARVE_LAYERS_PER_TICK = 5;
 
-    public OrbitalStrikeFallEntity(EntityType<? extends ThrowableProjectile> type, Level level) {
+    public OrbitalStrikeFallEntity(EntityType<?> type, Level level) {
         super(type, level);
-        this.setNoGravity(true);
+        this.noPhysics = true;
     }
 
-    public OrbitalStrikeFallEntity(EntityType<? extends ThrowableProjectile> type, Level level, Vec3 position) {
+    public OrbitalStrikeFallEntity(EntityType<?> type, Level level, Vec3 position) {
         super(type, level);
         this.setPos(position.x, position.y, position.z);
-        this.setNoGravity(true);
-        this.setDeltaMovement(0, -DESCENT_SPEED, 0);
+        this.noPhysics = true;
     }
 
     @Override
-    protected void onHitBlock(BlockHitResult result) {
-        detonate();
+    public void tick() {
+        if (this.level().isClientSide()) {
+            for (int i = 0; i < 8; i++) {
+                this.level().addParticle(ParticleTypes.FLAME,
+                        this.getX() + (this.random.nextDouble() - 0.5) * 2.0,
+                        this.getY() + (this.random.nextDouble() - 0.5) * 2.0,
+                        this.getZ() + (this.random.nextDouble() - 0.5) * 2.0,
+                        0.0, 0.0, 0.0);
+            }
+            for (int i = 0; i < 4; i++) {
+                this.level().addParticle(ParticleTypes.LARGE_SMOKE,
+                        this.getX() + (this.random.nextDouble() - 0.5) * 3.0,
+                        this.getY() + (this.random.nextDouble() - 0.5) * 3.0,
+                        this.getZ() + (this.random.nextDouble() - 0.5) * 3.0,
+                        0.0, 0.1, 0.0);
+            }
+        }
+
+        if (!this.level().isClientSide()) {
+            if (carving) {
+                carveTick();
+                return;
+            }
+
+            if (!detonated) {
+                this.setPos(this.getX(), this.getY() - DESCENT_SPEED, this.getZ());
+
+                BlockState stateBelow = this.level().getBlockState(
+                        BlockPos.containing(this.getX(), this.getY() - 1, this.getZ()));
+                if (!stateBelow.isAir() || this.getY() <= BEDROCK_Y) {
+                    detonate();
+                }
+            }
+        }
     }
 
     private void detonate() {
@@ -81,38 +112,14 @@ public class OrbitalStrikeFallEntity extends ThrowableProjectile {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (this.level().isClientSide()) {
-            for (int i = 0; i < 8; i++) {
-                this.level().addParticle(ParticleTypes.FLAME,
-                        this.getX() + (this.random.nextDouble() - 0.5) * 2.0,
-                        this.getY() + (this.random.nextDouble() - 0.5) * 2.0,
-                        this.getZ() + (this.random.nextDouble() - 0.5) * 2.0,
-                        0.0, 0.0, 0.0);
-            }
-            for (int i = 0; i < 4; i++) {
-                this.level().addParticle(ParticleTypes.LARGE_SMOKE,
-                        this.getX() + (this.random.nextDouble() - 0.5) * 3.0,
-                        this.getY() + (this.random.nextDouble() - 0.5) * 3.0,
-                        this.getZ() + (this.random.nextDouble() - 0.5) * 3.0,
-                        0.0, 0.1, 0.0);
-            }
-        }
-
-        if (!this.level().isClientSide()) {
-            if (carving) {
-                carveTick();
-            } else if (!detonated) {
-                BlockState stateBelow = this.level().getBlockState(this.blockPosition().below());
-                if (!stateBelow.isAir() || this.onGround()) {
-                    detonate();
-                }
-            }
-        }
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void readAdditionalSaveData(CompoundTag tag) {
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag tag) {
     }
 }

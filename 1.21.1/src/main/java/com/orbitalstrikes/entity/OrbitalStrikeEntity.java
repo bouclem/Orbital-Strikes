@@ -16,6 +16,8 @@ public class OrbitalStrikeEntity extends ThrowableProjectile {
     private static final float SMALL_EXPLOSION_RADIUS = 6.0f;
     private static final float PROJECTILE_SPEED = 3.0f;
     private static final int MAX_LIFETIME = 200;
+    private static final int FALL_DELAY_TICKS = 40;
+    private static final double FALL_SPAWN_HEIGHT = 50.0;
 
     private boolean detonated = false;
 
@@ -62,9 +64,9 @@ public class OrbitalStrikeEntity extends ThrowableProjectile {
             final Level level = this.level();
             final Vec3 impactPos = new Vec3(pos.x, pos.y, pos.z);
             level.getServer().tell(new net.minecraft.server.TickTask(
-                    level.getServer().getTickCount() + 24,
+                    level.getServer().getTickCount() + FALL_DELAY_TICKS,
                     () -> {
-                        Vec3 skyPos = new Vec3(impactPos.x, impactPos.y + 50, impactPos.z);
+                        Vec3 skyPos = new Vec3(impactPos.x, impactPos.y + FALL_SPAWN_HEIGHT, impactPos.z);
                         OrbitalStrikeFallEntity fallEntity = new OrbitalStrikeFallEntity(
                                 ModEntities.ORBITAL_STRIKE_FALL.get(), level, skyPos);
                         level.addFreshEntity(fallEntity);

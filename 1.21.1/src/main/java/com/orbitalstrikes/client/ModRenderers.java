@@ -12,5 +12,6 @@ public class ModRenderers {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.ORBITAL_STRIKE.get(), OrbitalStrikeRenderer::new);
+        event.registerEntityRenderer(ModEntities.ORBITAL_STRIKE_FALL.get(), OrbitalStrikeFallRenderer::new);
     }
 }
