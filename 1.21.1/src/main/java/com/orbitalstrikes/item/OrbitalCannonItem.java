@@ -1,5 +1,7 @@
 package com.orbitalstrikes.item;
 
+import com.orbitalstrikes.entity.ModEntities;
+import com.orbitalstrikes.entity.OrbitalStrikeEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -12,9 +14,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class OrbitalCannonItem extends Item {
-    private static final int COOLDOWN_TICKS = 100;
+    private static final int COOLDOWN_TICKS = 40;
     private static final int MAX_RANGE = 100;
-    private static final float EXPLOSION_RADIUS = 3.0f;
 
     public OrbitalCannonItem(Properties properties) {
         super(properties);
@@ -48,8 +49,10 @@ public class OrbitalCannonItem extends Item {
                 targetPosition = endPosition;
             }
 
-            level.explode(null, targetPosition.x, targetPosition.y, targetPosition.z,
-                    EXPLOSION_RADIUS, false, Level.ExplosionInteraction.TNT);
+            OrbitalStrikeEntity projectile = new OrbitalStrikeEntity(
+                    ModEntities.ORBITAL_STRIKE.get(), player, level);
+            projectile.shootToward(targetPosition);
+            level.addFreshEntity(projectile);
 
             player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
         }

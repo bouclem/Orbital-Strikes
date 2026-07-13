@@ -7,6 +7,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
 import com.orbitalstrikes.item.ModItems;
+import com.orbitalstrikes.entity.ModEntities;
 
 @Mod(OrbitalStrikes.MOD_ID)
 public class OrbitalStrikes {
@@ -14,6 +15,7 @@ public class OrbitalStrikes {
 
     public OrbitalStrikes(IEventBus modEventBus, ModContainer modContainer) {
         ModItems.register(modEventBus);
+        ModEntities.register(modEventBus);
         modEventBus.addListener(OrbitalStrikes::addCreative);
     }
 
