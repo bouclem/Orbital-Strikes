@@ -13,9 +13,10 @@ import net.minecraft.world.phys.Vec3;
 public class OrbitalStrikeEntity extends ThrowableProjectile {
     private static final int CLUSTER_COUNT = 40;
     private static final double CLUSTER_RADIUS = 10.0;
-    private static final float SMALL_EXPLOSION_RADIUS = 5.0f;
+    private static final float SMALL_EXPLOSION_RADIUS = 6.0f;
     private static final float PROJECTILE_SPEED = 3.0f;
     private static final int MAX_LIFETIME = 200;
+    private static final float FINAL_EXPLOSION_RADIUS = 100.0f;
 
     private boolean detonated = false;
 
@@ -58,6 +59,8 @@ public class OrbitalStrikeEntity extends ThrowableProjectile {
                 this.level().explode(null, pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
                         SMALL_EXPLOSION_RADIUS, false, Level.ExplosionInteraction.TNT);
             }
+            this.level().explode(null, pos.x, pos.y, pos.z,
+                    FINAL_EXPLOSION_RADIUS, true, Level.ExplosionInteraction.TNT);
         }
         this.discard();
     }
